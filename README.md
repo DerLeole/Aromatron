@@ -1,4 +1,4 @@
-###_Aromatron v1_
+**__Aromatron v1__**
 ##Melitta Aromaboy automation, making coffee whenever the included alarm rings.
 
 #_General_
