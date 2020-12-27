@@ -13,6 +13,7 @@
 #include <Wire.h>
 #include <Checksum.h>
 #include <EEPROM-Storage.h>
+#include "customCharacters.h"
 
 //----------[Pins]----------
 #define pinRotIn1 2
@@ -30,104 +31,23 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 //----------[RTC]----------
 RTC_DS3231 rtc;
 
-//----------[Custom Chars]----------
-byte charCoffeeHeart[] = {
-  B01010,
-  B11111,
-  B01110,
-  B00100,
-  B00000,
-  B01111,
-  B01111,
-  B01110
-};
-
-byte charCoffeeArmed[] = {
-  B00001,
-  B01010,
-  B00100,
-  B00000,
-  B00000,
-  B01111,
-  B01111,
-  B01110
-};
-
-byte charCoffeeDisarmed[] = {
-  B00000,
-  B01010,
-  B00100,
-  B01010,
-  B00000,
-  B01111,
-  B01111,
-  B01110
-};
-
-byte charBean[] = {
-  B01100,
-  B11110,
-  B10111,
-  B11011,
-  B11011,
-  B11101,
-  B01111,
-  B00110
-};
-
-byte charRestart[] = {
-  B00000,
-  B11100,
-  B01100,
-  B10101,
-  B10001,
-  B10001,
-  B01110,
-  B00000
-};
-
-byte charWait[] = {
-  B11111,
-  B10001,
-  B01010,
-  B00100,
-  B00100,
-  B01110,
-  B11111,
-  B11111
-};
-
-byte charClock[] = {
-  B00000,
-  B00000,
-  B01110,
-  B10101,
-  B10111,
-  B10001,
-  B01110,
-  B00000
-};
-
-byte charClockEdit[] = {
-  B00000,
-  B10101,
-  B00000,
-  B01110,
-  B10101,
-  B10111,
-  B10001,
-  B01110
-};
-
-
 /*************************************************
 ++++++++++++[VARIABLES]+++++++++++++++++++++++++++
 *************************************************/
+//General
+bool isArmed;
+int menuState;
+
+//LCD
+bool clearflag;
+
+//Time
+DateTime now;
+DateTime prevNow;
+char daysOfTheWeek[7][12] = {"So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"};
+
 //Rotary Encoder
-int rotaryCurState;
 int rotaryLastState;
-
-
 
 /*************************************************
 ++++++++++++[SETUP]+++++++++++++++++++++++++++++++
@@ -135,6 +55,7 @@ int rotaryLastState;
 void setup()
 {
   //Initialize Debug Serial Connection
+  Wire.begin();
   Serial.begin(9600);
   Serial.println("Aromatron Debug Serial Begin:");
   Serial.println("[INFO] Setup started.");
@@ -149,6 +70,9 @@ void setup()
   pinMode(pinGreenLed, OUTPUT);
   pinMode(pinRelais, OUTPUT);
 
+  //Disable Relais instantly
+  changeRelais(false);
+
   //Initialize LCD
   lcd.init();
   lcd.noAutoscroll();
@@ -159,9 +83,37 @@ void setup()
   lcd.createChar(4, charRestart);
   lcd.createChar(5, charWait);
   lcd.createChar(6, charClock);
-  lcd.createChar(7, charClockEdit);
+  lcd.createChar(7, charCalendar);
   lcd.backlight();
 
+  //Initialize RTC
+  //try to start RTC
+  if (!rtc.begin())
+  {
+    //throw error when rtc isn't connected
+    showError("RTC NOT FOUND", true);
+  }
+
+  //Update the rtc with compile time date/time
+  //TODO change this to something 
+  rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+
+  //check if rtc lost power
+  if (rtc.lostPower())
+  {
+    //throw error when rtc lost power
+    showError("RTC LOST POWER", false);
+
+    //open time input dialogue
+    //TODO
+  }
+
+  //Initialize rotary encoder logic
+  rotaryLastState = digitalRead(pinRotIn1);
+
+  Serial.println("[INFO] Setup completed.");
+
+  //----------POST SETUP----------
   //LCD: print bootscreen
   lcd.setCursor(0, 0);
   lcd.print("Aromatron v1");
@@ -169,12 +121,8 @@ void setup()
   lcd.write(0);
   lcd.setCursor(0, 1);
   lcd.print("by Leo Keil");
-
-  //Initialize rotary encoder logic
-  rotaryLastState = digitalRead(pinRotIn1);
-
-
-  Serial.println("[INFO] Setup completed.");
+  delay(1000);
+  clearflag = true;
 }
 
 /*************************************************
@@ -182,132 +130,299 @@ void setup()
 *************************************************/
 void loop()
 {
-	// write your main code here, to run repeatedly
+  //----------UPDATE TIME----------
+  now = rtc.now();
+  
+  //----------CHECK 1: ALARM---------
+  if (isArmed)
+  {
+    //TODO: Implement Actual check
+  }
 
+  //----------CHECK 2: TIME/DATE CHANGE----------
+  //check if we're in the main menu
+  if (menuState == 0)
+  {
+    //compare times
+    if (now != prevNow)
+    {
+      updateMainScreen(clearflag, true, true, true);
+    }
+  }
+
+  //----------CHECK 3: INPUT----------
+  //Arming Button
+  //check if you're in the main menu
+  if (menuState == 0)
+  {
+    //check if the arming button is pressed
+    if (digitalRead(pinArmBtn))
+    {
+      //show arming dialogue and check if arming/disarming was successful
+      if(showArming())
+      {
+        
+      }
+    }
+  }
+
+  //----------ARCHIVE TIME----------
+  prevNow = now;
 }
 
 /*************************************************
 ++++++++++++[METHODS]+++++++++++++++++++++++++++
 *************************************************/
-
+//----------checkDial()----------
 //Checks if they dial has been turned or not
-//0 = no turn, 1 = left turn, 2 = right turn
-int checkDialTurn()
+//0 = no turn, 1 = left turn, 2 = right turn, 3 = button pressed
+int checkDial()
 {
-  rotaryCurState = digitalRead(pinRotIn1);
+  int result = 0;
+  int rotaryCurState = digitalRead(pinRotIn1);
+  //has button been pressed
+  if (digitalRead(pinRotBtn))
+  {
+    //button pressed
+    result = 3;
+  }
   //has dial turned? 
-  if (rotaryCurState != rotaryLastState)
+  else if (rotaryCurState != rotaryLastState)
   {
     //has it turned right?
     if (digitalRead(pinRotIn2) != rotaryCurState)
     {
        //turned right
-       return 2;
+       result = 2;
     }
     else
     {
       //turned left
-      return 1;
+      result = 1;
+    }
+  }
+  
+  //archive rotary state
+  rotaryLastState = rotaryCurState;
+  
+  return result;
+}
+
+//----------updateMainScreen()----------
+//updates the main screen fully or partially
+void updateMainScreen(bool resetScreen, bool updateTime, bool updateDate, bool updateArmed)
+{
+  //clear lcd and rebuild basic symbols
+  if (resetScreen)
+  {
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.write(6);
+    lcd.setCursor(0,1);
+    lcd.write(7);
+
+    //reset clearflag
+    clearflag = false;
+  }
+  
+  char dateBuffer[12];
+  
+  //update time
+  if (updateTime)
+  {
+    //fill buffer with time and new syntax and print it
+    sprintf(dateBuffer,"%02u:%02u:%02u ",now.hour(),now.minute(),now.second());
+    lcd.setCursor(1,0);
+    lcd.print(dateBuffer);
+  }
+
+  //update date
+  if (updateDate)
+  {
+    //fill buffer with date and new syntax and print it
+    sprintf(dateBuffer,"%02u/%02u/%04u ",now.day(),now.month(),now.year());
+    lcd.setCursor(1,1);
+    lcd.print(dateBuffer);
+    
+    //print weekday
+    lcd.setCursor(12,1);
+    lcd.print(daysOfTheWeek[now.dayOfTheWeek()]);
+
+  }
+
+  //update armed status
+  if (updateArmed)
+  {
+    lcd.setCursor(15,0);
+    //check if the Aromatron is armed
+    if (isArmed)
+    {
+      //write armed Symbol
+      lcd.write(1);
+    }
+    else
+    {
+      //write disarmed Symbol
+      lcd.write(2);
+    }
+  }
+}
+
+//----------changeRelais()----------
+//controls the relais that is in the Aromaboy & the green LED
+void changeRelais(bool turnOn)
+{
+  if (turnOn)
+  {
+    //turn on Aromaboy and green LED
+    digitalWrite(pinRelais, LOW);
+    digitalWrite(pinGreenLed, HIGH);
+    Serial.println("[INFO] Relais turned on!");
+  }
+  else
+  {
+    //turn off Aromaboy and green LED
+    digitalWrite(pinRelais, HIGH);
+    digitalWrite(pinGreenLed, LOW);
+    Serial.println("[INFO] Relais turned off!");
+  }
+}
+
+//----------toggleArming()----------
+//toggles the arming status and red LED
+void toggleArming()
+{
+  //give little alarm beep and blink
+  for (int i = 0; i < 4; i++)
+  {
+    digitalWrite(pinBuzzer, HIGH);
+    digitalWrite(pinRedLed, HIGH);
+    delay(30);
+    digitalWrite(pinBuzzer, LOW);
+    digitalWrite(pinRedLed, LOW);
+    delay(80);
+  }
+  
+  //disarming
+  if (isArmed)
+  {
+    isArmed = false;
+    digitalWrite(pinRedLed, LOW);
+    Serial.println("[INFO] Aromatron disarmed!");
+  }
+  //arming
+  else
+  {
+    isArmed = true;
+    digitalWrite(pinRedLed, HIGH);
+    Serial.println("[INFO] Aromatron armed!");
+  }
+}
+
+//----------showArming----------
+//Opens the arming dialogue
+//returns true if armed, otherwise returns false
+bool showArming()
+{
+  //Setup lcd
+  lcd.clear();
+  lcd.setCursor(0,0);
+  if (isArmed)
+  {
+    lcd.print("Disarming...");
+  }
+  else
+  {
+    lcd.print("Arming...");
+  }
+  lcd.setCursor(0,1);
+  lcd.print("[");
+  lcd.setCursor(15,1);
+  lcd.print("]");
+  
+  //goes from 0 to 14
+  int progress = 0;
+  bool completed = false;
+  
+  //check if the button is still being held
+  while(digitalRead(pinArmBtn) && !completed)
+  {
+    //check if the arming is complete
+    if (progress > 13)
+    {
+      completed = true;
+    }
+    else
+    {
+      lcd.setCursor(progress + 1, 1);
+      lcd.write(3);
+      progress++;
+      delay(150);
     }
   }
 
-  return 0;
+  //Show results on completed
+  if (completed)
+  {
+    lcd.clear();
+    lcd.setCursor(0,0);
+    if (isArmed)
+    {
+      lcd.print("Disarming");
+    }
+    else
+    {
+      lcd.print("Arming");  
+    }
+    lcd.setCursor(0,1);
+    lcd.print("successful!");
+
+    //toggle actual arming state
+    toggleArming();
+
+    delay(700);
+  }
+
+  //tell main menu to clear display
+  clearflag = true;
+  return completed;
 }
 
+//----------showError----------
 //Opens an error dialogue on the lcd, pausing or stopping any other function
-//
-//void showError(int erro
-
-
-
-//Extra
-/*
-#include <LiquidCrystal.h>
-#include <RTClib.h>
-#include <Wire.h>
-#include <LiquidCrystal_I2C.h>
-
-#define outputA 2
-#define outputB 3
-#define rotBtn 4
-#define buzzer 5
-#define armBtn 6
-#define redLED 7
-#define greenLED 8
-
-LiquidCrystal_I2C lcd(0x27,16,2); 
- 
-int counter = 0;
-int aState;
-int aLastState;
-int prevBtn = 1; 
-
-
- 
-void setup() {
-pinMode (outputA,INPUT);
-pinMode (outputB,INPUT);
-pinMode (rotBtn,INPUT_PULLUP);
-pinMode (buzzer, OUTPUT);
-pinMode (armBtn, INPUT_PULLUP);
-pinMode (redLED, OUTPUT);
-pinMode (greenLED, OUTPUT);
-pinMode (12, OUTPUT);
- 
-Serial.begin (9600);
- lcd.init();                      
- // Print a message to the LCD.
- lcd.backlight();
- lcd.print("Debug");
-// Reads the initial state of the outputA
-aLastState = digitalRead(outputA);
- 
-}
- 
-void loop() {
-int btn = digitalRead(rotBtn);
-if (!btn)
+void showError(String errorMessage, bool restart)
 {
-  digitalWrite(buzzer, HIGH);
-}
-else
-{
-  digitalWrite(buzzer, LOW);
-}
-int aBtn = digitalRead(armBtn);
-if (aBtn)
-{
-  digitalWrite(12, LOW) ;
-  digitalWrite(redLED, HIGH);
-  digitalWrite(greenLED, HIGH);
-}
-else
-{
-  digitalWrite(12, HIGH);
-  digitalWrite(redLED, LOW);
-  digitalWrite(greenLED, LOW);
-}
+  //turn off relais
+  changeRelais(false);
+  
+  //print general error
+  lcd.clear();
+  lcd.home();
+  lcd.print("Error!");
 
-aState = digitalRead(outputA); // Reads the "current" state of the outputA
-// If the previous and the current state of the outputA are different, that means a Pulse has occured
-if (aState != aLastState){
-// If the outputB state is different to the outputA state, that means the encoder is rotating clockwise
-if (digitalRead(outputB) != aState) {
-counter ++;
-lcd.clear();
-} else {
-counter --;
-lcd.clear();
-}
+  //print error message
+  lcd.setCursor(0,1);
+  lcd.print(errorMessage);
 
-lcd.setCursor(0, 0);
-lcd.print("Position: ");
-lcd.setCursor(10, 0);
-lcd.print(counter);
- 
-}
-aLastState = aState; // Updates the previous state of the outputA with the current state
+  //print error message to serial
+  Serial.println("[ERROR] " + errorMessage);
 
- 
+  //print restart/wait symbol and either delay or loop
+  lcd.setCursor(15,0);
+  if (restart)
+  {
+    //print restart symbol
+    lcd.print(4);
+
+    //loop forever
+    while(1){}
+  }
+  else
+  {
+    //print wait symbol
+    lcd.print(5);
+
+    //delay for a bit
+    delay(5000);
+  }
 }
-*/
