@@ -1,5 +1,5 @@
-**__Aromatron v1__**
-##Melitta Aromaboy automation, making coffee whenever the included alarm rings.
+__Aromatron v1__
+Melitta Aromaboy automation, making coffee whenever the included alarm rings.
 
 #_General_
 Designed for an Arduino Nano, RTC, I2C LCD screen, rotary encoder, one button, two LEDs, a relais, and a buzzer.
