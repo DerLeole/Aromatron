@@ -54,15 +54,15 @@ byte charRestart[] = {
   B00000
 };
 
-byte charWait[] = {
+byte charReturn[] = {
+  B00000,
+  B00001,
+  B00001,
+  B00101,
+  B01101,
   B11111,
-  B10001,
-  B01010,
-  B00100,
-  B00100,
-  B01110,
-  B11111,
-  B11111
+  B01100,
+  B00100
 };
 
 byte charClock[] = {

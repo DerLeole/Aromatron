@@ -1,0 +1,13 @@
+{
+    "settings":
+    {
+        "AStyleFormatter":
+        {
+        	"options_default":
+        	{
+        	    // Use 2 spaces for indentation
+        	    
+        	}
+        }
+    }
+}
