@@ -4,6 +4,50 @@
 		"selected_items":
 		[
 			[
+				"sw",
+				"switch\tArduino switch"
+			],
+			[
+				"time",
+				"timeResetStage"
+			],
+			[
+				"TIME",
+				"DateTime"
+			],
+			[
+				"edi",
+				"editMode"
+			],
+			[
+				"ala",
+				"alarmIsAudible"
+			],
+			[
+				"clea",
+				"clear"
+			],
+			[
+				"currentEd",
+				"currentEditHours"
+			],
+			[
+				"alarm",
+				"alarmEditTime"
+			],
+			[
+				"curre",
+				"currentEditTime"
+			],
+			[
+				"a",
+				"alarmEditMinutes"
+			],
+			[
+				"alar",
+				"alarmTimesInMinutes"
+			],
+			[
 				"Date",
 				"DateTime"
 			],
@@ -30,10 +74,6 @@
 			[
 				"menu",
 				"menuState"
-			],
-			[
-				"clea",
-				"clearflag"
 			],
 			[
 				"clear",
@@ -83,7 +123,7 @@
 			"file": "Aromatron_v1.ino",
 			"settings":
 			{
-				"buffer_size": 10721,
+				"buffer_size": 14552,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -238,15 +278,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 10721,
+						"buffer_size": 14552,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								585,
-								585
+								12548,
+								12548
 							]
 						],
 						"settings":
@@ -255,7 +295,7 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 10585.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
@@ -274,8 +314,8 @@
 						"selection":
 						[
 							[
-								158,
-								158
+								1,
+								1
 							]
 						],
 						"settings":
@@ -316,7 +356,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 5,
+					"stack_index": 2,
 					"type": "text"
 				},
 				{
@@ -346,7 +386,7 @@
 						"translation.y": 1728.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 4,
+					"stack_index": 5,
 					"type": "text"
 				},
 				{
@@ -375,7 +415,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 3,
+					"stack_index": 4,
 					"type": "text"
 				},
 				{
@@ -403,7 +443,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 3,
 					"type": "text"
 				}
 			]

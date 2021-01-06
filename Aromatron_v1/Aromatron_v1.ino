@@ -473,6 +473,9 @@ void updateMenu()
 //returns true if armed, otherwise returns false
 bool showArming()
 {
+	//change menuState
+	menuState = -2;
+
 	//Setup lcd
 	lcd.clear();
 	lcd.setCursor(0, 0);
@@ -533,6 +536,7 @@ bool showArming()
 	}
 
 	//tell main menu to clear display
+	menuState = 0;
 	clearflag = true;
 	return completed;
 }
@@ -576,9 +580,9 @@ void showError(String errorMessage, bool restart)
 
 		//loop until dial is moved or pressed
 		while (checkDial() == 0) {}
-
-		clearflag = true;
+		//tell main menu to clear display
 		menuState = 0;
+		clearflag = true;
 	}
 }
 
@@ -586,10 +590,11 @@ void showError(String errorMessage, bool restart)
 //Opens a dialogue that lets you reset the time of the rtc
 void showResetTime()
 {
+	//change menuState
+	menuState = -4;
+
 	//variables
-	int day;
-	int month;
-	int year;
+	int dateArray[3];
 	int hour;
 	int minute;
 	int second;
@@ -605,24 +610,25 @@ void showResetTime()
 	lcd.setCursor(0, 1);
 	lcd.write(7);
 	lcd.setCursor(5, 1);
-	lcd.print( /  / );
+	lcd.print(" /  / ");
 
 	//date reset loop
 	while (timeResetStage < 3)
 	{
+		int tempDate;
 		//devide what to do according to dial state
 		switch (checkDial())
 		{
 		//turn left
-		case :
+		case 1:
 			// do something
 			break;
 		//turn right
-		case :
+		case 2:
 			// do something
 			break;
 		//button pressed
-		case :
+ 		case 3:
 			// do something
 			break;
 		default:
@@ -630,7 +636,8 @@ void showResetTime()
 		}
 	}
 
-	//set clearflag
+	//tell main menu to clear display
+	menuState = 0;
 	clearflag = true;
 }
 
