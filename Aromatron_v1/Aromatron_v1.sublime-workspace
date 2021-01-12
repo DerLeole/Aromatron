@@ -4,6 +4,142 @@
 		"selected_items":
 		[
 			[
+				"update",
+				"updateMenuFlag"
+			],
+			[
+				"upda",
+				"updateMenu"
+			],
+			[
+				"upd",
+				"updateMenu"
+			],
+			[
+				"Rota",
+				"RotaryEncoder"
+			],
+			[
+				"rot",
+				"RotaryEncoder"
+			],
+			[
+				"beg",
+				"begin"
+			],
+			[
+				"Rot",
+				"RotaryEncoder"
+			],
+			[
+				"Ro",
+				"RotaryEncoder"
+			],
+			[
+				"glob",
+				"globalDialState"
+			],
+			[
+				"rotary",
+				"rotaryCurState"
+			],
+			[
+				"glo",
+				"globalDialState"
+			],
+			[
+				"pinRotIn",
+				"pinRotIn2"
+			],
+			[
+				"pinRot",
+				"pinRotBtn"
+			],
+			[
+				"rotar",
+				"rotaryCurState"
+			],
+			[
+				"digit",
+				"digitalRead\tArduino digitalRead"
+			],
+			[
+				"pr",
+				"printf\tprintf …"
+			],
+			[
+				"pri",
+				"println"
+			],
+			[
+				"alarm",
+				"alarmEditTime"
+			],
+			[
+				"alar",
+				"alarmTimes"
+			],
+			[
+				"alaem",
+				"alarmTimes"
+			],
+			[
+				"up",
+				"updateMenu"
+			],
+			[
+				"clea",
+				"clearflag"
+			],
+			[
+				"ed",
+				"editTimeBuffer"
+			],
+			[
+				"cur",
+				"currentEditHoursA"
+			],
+			[
+				"cle",
+				"clearflag"
+			],
+			[
+				"togg",
+				"toggleLights"
+			],
+			[
+				"LED",
+				"pinGreenLed"
+			],
+			[
+				"led",
+				"pinRedLed"
+			],
+			[
+				"backli",
+				"backlight"
+			],
+			[
+				"is",
+				"isBacklightOn"
+			],
+			[
+				"show",
+				"showResetTime"
+			],
+			[
+				"succ",
+				"successfully"
+			],
+			[
+				"new",
+				"newTime"
+			],
+			[
+				"date",
+				"dateArray"
+			],
+			[
 				"sw",
 				"switch\tArduino switch"
 			],
@@ -24,16 +160,8 @@
 				"alarmIsAudible"
 			],
 			[
-				"clea",
-				"clear"
-			],
-			[
 				"currentEd",
 				"currentEditHours"
-			],
-			[
-				"alarm",
-				"alarmEditTime"
 			],
 			[
 				"curre",
@@ -42,10 +170,6 @@
 			[
 				"a",
 				"alarmEditMinutes"
-			],
-			[
-				"alar",
-				"alarmTimesInMinutes"
 			],
 			[
 				"Date",
@@ -66,10 +190,6 @@
 			[
 				"day",
 				"daysOfTheWeekFull"
-			],
-			[
-				"pri",
-				"print"
 			],
 			[
 				"menu",
@@ -104,10 +224,6 @@
 				"pinMode\tArduino pinMode"
 			],
 			[
-				"pinRot",
-				"pinRotBtn"
-			],
-			[
 				"In",
 				"INPUT"
 			],
@@ -123,7 +239,7 @@
 			"file": "Aromatron_v1.ino",
 			"settings":
 			{
-				"buffer_size": 14552,
+				"buffer_size": 19891,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -138,31 +254,13 @@
 			}
 		},
 		{
-			"file": "/C/Users/Leo/AppData/Roaming/Sublime Text 3/Packages/SublimeAStyleFormatter/options_default.json",
-			"settings":
-			{
-				"buffer_size": 1390,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "/C/Users/Leo/AppData/Roaming/Sublime Text 3/Packages/SublimeAStyleFormatter/README.md",
-			"settings":
-			{
-				"buffer_size": 5884,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"contents": "Maintain the current PR channels and outlets and see that theyre in good condition.\nNo big banger content output for now until close to release of the Ravenholm Demo.\nSail the ship of PR forward into the new Update.\nReliably contactable withing 24 hours.\nAn hour a day to put in.\n\n1. Maintaining Social Media.\n2. Provide Groundwork real well thought out marketing strategy for ravenholm.\n3. Marketing Strategy for Ravenholm. (Further Down the line.)\n\nAdditional Content:\n-Let the team know, that theres excited people out there.\n\nTODO:\nSocial Media Secure and Status\nScheduling\nMeta stuff about the ",
+			"contents": "Maintain the current PR channels and outlets and see that theyre in good condition.\nNo big banger content output for now until close to release of the Ravenholm Demo.\nSail the ship of PR forward into the new Update.\nReliably contactable withing 24 hours.\nAn hour a day to put in.\n\n1. Maintaining Social Media.\n2. Provide Groundwork real well thought out marketing strategy for ravenholm.\n3. Marketing Strategy for Ravenholm. (Further Down the line.)\n\nAdditional Content:\n-Let the team know, that theres excited people out there.\n\nTODO:\nSocial Media Secure and Status\nScheduling\nRemove phone access checking on google\nsign into facebook / make account\nGet back into instagram\nDiscord game distribution access\n",
 			"file": "/C/Users/Leo/Desktop/pr.txt",
-			"file_size": 461,
-			"file_write_time": 132540993421856613,
+			"file_size": 692,
+			"file_write_time": 132547844959418376,
 			"settings":
 			{
-				"buffer_size": 599,
+				"buffer_size": 708,
 				"line_ending": "Windows",
 				"name": "Maintain the current PR channels and outlets and s"
 			}
@@ -171,7 +269,7 @@
 			"file": "/S/Leo/PersonalStuff/Project Borealis/pr_socialmedia_report_january_2021",
 			"settings":
 			{
-				"buffer_size": 447,
+				"buffer_size": 2896,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -221,10 +319,11 @@
 	},
 	"file_history":
 	[
-		"/S/Leo/PersonalStuff/Programming/Arduino/SiaPresent/MrCoffe_v1/MrCoffe_v1.ino",
+		"/C/Users/Leo/Downloads/Abgabe Games Audio Unity.txt",
 		"/C/Users/Leo/AppData/Roaming/Sublime Text 3/Packages/SublimeAStyleFormatter/options_default.json",
-		"/C/Users/Leo/AppData/Roaming/Sublime Text 3/Packages/SublimeAStyleFormatter/AStyleFormatterLib/Options.py",
 		"/C/Users/Leo/AppData/Roaming/Sublime Text 3/Packages/SublimeAStyleFormatter/README.md",
+		"/S/Leo/PersonalStuff/Programming/Arduino/SiaPresent/MrCoffe_v1/MrCoffe_v1.ino",
+		"/C/Users/Leo/AppData/Roaming/Sublime Text 3/Packages/SublimeAStyleFormatter/AStyleFormatterLib/Options.py",
 		"/C/Users/Leo/Desktop/keil-leonard_audio-in-unity_submission.md",
 		"/S/Leo/PersonalStuff/Programming/Arduino/SiaPresent/MrCoffe_v1/.git/COMMIT_EDITMSG",
 		"/C/Users/Leo/Downloads/Stino-Stino-Dev/libs/stino_runtime/__init__.py",
@@ -243,6 +342,7 @@
 		"height": 101.0,
 		"where_history":
 		[
+			""
 		]
 	},
 	"find_state":
@@ -250,6 +350,9 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"updateMenu();",
+			"alarmTimes",
+			"currentEditHours",
 			"updateMainScreen",
 			"-1"
 		],
@@ -259,6 +362,7 @@
 		"regex": false,
 		"replace_history":
 		[
+			"updateMenuFlag = true;"
 		],
 		"reverse": false,
 		"show_context": true,
@@ -278,15 +382,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 14552,
+						"buffer_size": 19891,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								12548,
-								12548
+								5989,
+								5989
 							]
 						],
 						"settings":
@@ -295,7 +399,7 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 10585.0,
+						"translation.y": 4266.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
@@ -326,84 +430,24 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 3,
 					"type": "text"
 				},
 				{
 					"buffer": 2,
-					"file": "/C/Users/Leo/AppData/Roaming/Sublime Text 3/Packages/SublimeAStyleFormatter/options_default.json",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 1390,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								826,
-								826
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JSON.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 2,
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "/C/Users/Leo/AppData/Roaming/Sublime Text 3/Packages/SublimeAStyleFormatter/README.md",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 5884,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								3868,
-								3799
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Markdown/Markdown.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 1728.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 5,
-					"type": "text"
-				},
-				{
-					"buffer": 4,
 					"file": "/C/Users/Leo/Desktop/pr.txt",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 599,
+						"buffer_size": 708,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								599,
-								599
+								708,
+								708
 							]
 						],
 						"settings":
@@ -415,24 +459,24 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 4,
+					"stack_index": 2,
 					"type": "text"
 				},
 				{
-					"buffer": 5,
+					"buffer": 3,
 					"file": "/S/Leo/PersonalStuff/Project Borealis/pr_socialmedia_report_january_2021",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 447,
+						"buffer_size": 2896,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								447,
-								447
+								0,
+								2896
 							]
 						],
 						"settings":
@@ -443,7 +487,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 3,
+					"stack_index": 1,
 					"type": "text"
 				}
 			]
@@ -490,7 +534,7 @@
 	},
 	"output.stino_build_panel":
 	{
-		"height": 126.0
+		"height": 191.0
 	},
 	"output.stino_panel":
 	{
@@ -523,12 +567,12 @@
 	},
 	"select_symbol":
 	{
-		"height": 0.0,
+		"height": 392.0,
 		"last_filter": "",
 		"selected_items":
 		[
 		],
-		"width": 0.0
+		"width": 592.0
 	},
 	"selected_group": 0,
 	"settings":

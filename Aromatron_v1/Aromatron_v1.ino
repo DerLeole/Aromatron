@@ -14,6 +14,7 @@
 #include <Checksum.h>
 #include <EEPROM-Storage.h>
 #include "customCharacters.h"
+#include <MD_REncoder.h>
 
 //----------[Pins]----------
 #define pinRotIn1 2
@@ -31,28 +32,45 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 //----------[RTC]----------
 RTC_DS3231 rtc;
 
+//----------[ROTARY]----------
+MD_REncoder RotaryEncoder = MD_REncoder(3, 2);
+
+//----------[RANDOM]----------
+#define numberOfInterruptables 13
+
 /*************************************************
 ++++++++++++[VARIABLES]+++++++++++++++++++++++++++
 *************************************************/
 //General
 bool isArmed;
 bool alarmIsAudible;
-int menuState;
+int menuState = 0;
+int prevMenuState = 0;
 
 //Display
 bool clearflag;
+bool updateMenuFlag;
 bool editMode;
+char dateBuffer[12];
+char editTimeBufferA[7];
+char editTimeBufferB[8];
+char editTimeBufferC[8];
 
 //Time
 DateTime now;
 DateTime prevNow;
-DateTime alarmTimes[7];
 int alarmEditTime;
-char daysOfTheWeek[7][2] = {"So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"};
-char daysOfTheWeekFull[7][2] = {"Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"};
+int brewTime;
+int warmTime;
+//starts with monday
+int alarmTimes[7];
+//(Starts with Sunday)
+String daysOfTheWeek[7] = {"So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"};
+String daysOfTheWeekFull[7] = {"Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"};
 
 //Rotary Encoder
-int rotaryLastState;
+boolean rotaryButtonLocked = false;
+int rotarySpeed;
 
 /*************************************************
 ++++++++++++[SETUP]+++++++++++++++++++++++++++++++
@@ -74,6 +92,9 @@ void setup()
 	pinMode(pinRedLed, OUTPUT);
 	pinMode(pinGreenLed, OUTPUT);
 	pinMode(pinRelais, OUTPUT);
+
+	//Initialize rotary encoder logic
+	RotaryEncoder.begin();
 
 	//Disable Relais instantly
 	changeRelais(false);
@@ -110,11 +131,8 @@ void setup()
 		showError("RTC LOST POWER", false);
 
 		//open time input dialogue
-		//TODO
+		showResetTime();
 	}
-
-	//Initialize rotary encoder logic
-	rotaryLastState = 0;
 
 	Serial.println("[INFO] Setup completed.");
 
@@ -136,7 +154,7 @@ void setup()
 	lcd.write(0);
 	lcd.setCursor(0, 1);
 	lcd.print("by Leo Keil");
-	delay(1000);
+	delay(500);
 	clearflag = true;
 }
 
@@ -161,7 +179,7 @@ void loop()
 		//compare times
 		if (now != prevNow)
 		{
-			updateMenu();
+			updateMenuFlag = true;
 		}
 	}
 
@@ -198,16 +216,22 @@ void loop()
 		{
 		//turn left
 		case 1:
-			//turn off backlight
-			//TODO: turn off lighting
+			//turn off lights
+			toggleLights(false);
 			break;
 		//turn right
 		case 2:
-			//turn on backlight
+			//turn on lights
+			toggleLights(true);
 			break;
-		//turn right
+		//press button
 		case 3:
-			// do something
+			//turn on lights
+			toggleLights(true);
+
+			//change menu state to Settings menu Monday (menuState 1) and update the menu
+			menuState = 1;
+			clearflag = true;
 			break;
 		default:
 			//do nothing
@@ -215,12 +239,138 @@ void loop()
 		}
 		break;
 
-	//Settings Menu 1
+	//Settings Menu 1-7 (AlarmTimes)
 	case 1:
-		// do something
+	case 2:
+	case 3:
+	case 4:
+	case 5:
+	case 6:
+	case 7:
+		//checks what direction the dial was turned
+		switch (dialState) {
+		//turn left
+		case 1:
+			//check if in edit mode
+			if (editMode)
+			{
+				//decrease temporary alarm edit time by 1 minute and check if its in range
+				alarmEditTime = (alarmEditTime - 1) % 1440;
+				//check if the alarm edit time would be under 0
+				if (alarmEditTime < 0)
+				{
+					// loop the time back around
+					alarmEditTime = 1439;
+				}
+
+				//update screen
+				updateMenuFlag = true;
+			}
+			else
+			{
+				//decrease menu state by 1 and update screen
+				menuState = (menuState - 1) % numberOfInterruptables;
+				//check if the menu state would be 0
+				if (menuState == 0)
+				{
+					//loop the menu state back to 12
+					menuState = 12;
+				}
+				clearflag = true;
+			}
+			break;
+		//turn right
+		case 2:
+			//check if in edit mode
+			if (editMode)
+			{
+				//decrease temporary alarm edit time by 1 minute and check if its in range
+				alarmEditTime = (alarmEditTime + 1) % 1440;
+
+				//update screen
+				updateMenuFlag = true;
+			}
+			else
+			{
+				//increase menu state by 1 and update screen
+				menuState = (menuState + 1) % numberOfInterruptables;
+				clearflag = true;
+			}
+			break;
+		//press button
+		case 3:
+			//check if in edit mode
+			if (editMode)
+			{
+				//store edited alarm time in runtime Array (will be saved to eeprom once user returns to main screen)
+				alarmTimes[(menuState - 1) % 7] = alarmEditTime;
+
+				//disbale edit mode and update screen
+				editMode = false;
+				updateMenuFlag = true;
+			}
+			else
+			{
+				//load temporary alarm time from previously saved times in alarmTimes[]
+				alarmEditTime = alarmTimes[(menuState - 1) % 7];
+
+				//enable edit mode and update screen
+				editMode = true;
+				updateMenuFlag = true;
+			}
+			break;
+		default:
+			break;
+		}
+
 		break;
 	default:
 		// do something
+		break;
+	}
+
+	//----------CHECK 4: PRELOAD alarmEditTime----------
+	//check if the menu state has changed
+	if (prevMenuState != menuState)
+	{
+		//check which alarmEditTime to preload
+		switch (menuState)
+		{
+		//Settings Menu Monday-Sunday
+		case 1:
+		case 2:
+		case 3:
+		case 4:
+		case 5:
+		case 6:
+		case 7:
+			//load alarmEditTime from saved runtime Arrays
+			alarmEditTime = alarmTimes[(menuState - 1) % 7];
+			break;
+		//Settings Menu Brewtime
+		case 8:
+			//load alarmEditTime from saved brewTime;
+			alarmEditTime = brewTime;
+			break;
+		//Settings Menu Warmtime
+		case 9:
+			//load alarmEditTime from saved warmTime;
+			alarmEditTime = warmTime;
+			break;
+		default:
+			break;
+		}
+
+		updateMenuFlag = true;
+
+		prevMenuState = menuState;
+	}
+
+	//----------CHECK 5: UDPATE MENU----------
+	if (updateMenuFlag)
+	{
+		updateMenu();
+		updateMenuFlag = false;
 	}
 
 	//----------ARCHIVE TIME----------
@@ -234,6 +384,11 @@ void loop()
 //updates all interruptable menus according to imputs and global states
 void updateMenu()
 {
+	Serial.print("[INFO] Updated display with menuState = ");
+	Serial.print(menuState);
+	Serial.print(" and clearflag = ");
+	Serial.print(clearflag);
+	Serial.println(".");
 	//checks if it should clear the screen
 	//screen is the rebuilt inside the switch
 	if (clearflag)
@@ -256,13 +411,12 @@ void updateMenu()
 			lcd.write(7);
 		}
 
-		char dateBuffer[12];
 		//fill buffer with Time and new syntax and print it
-		sprintf(dateBuffer, "%02u:%02u:%02u ", now.hour(), now.minute(), now.second());
+		sprintf(dateBuffer, "%02u:%02u:%02u", now.hour(), now.minute(), now.second());
 		lcd.setCursor(1, 0);
 		lcd.print(dateBuffer);
 		//fill buffer with Date and new syntax and print it
-		sprintf(dateBuffer, "%02u/%02u/%04u ", now.day(), now.month(), now.year());
+		sprintf(dateBuffer, "%02u/%02u/%04u", now.day(), now.month(), now.year());
 		lcd.setCursor(1, 1);
 		lcd.print(dateBuffer);
 		//print Weekday
@@ -317,13 +471,12 @@ void updateMenu()
 		}
 
 		//convert saved int to hours and minutes
-		int currentEditHours = alarmEditTime / 60;
-		int currentEditMinutes = alarmEditTime % 60;
+		int currentEditHoursA = alarmEditTime / 60;
+		int currentEditMinutesA = alarmEditTime % 60;
 		//print time
+		sprintf(editTimeBufferA, "%02u:%02u", currentEditHoursA, currentEditMinutesA);
 		lcd.setCursor(6, 1);
-		lcd.print(currentEditHours);
-		lcd.setCursor(9, 1);
-		lcd.print(currentEditMinutes);
+		lcd.print(editTimeBufferA);
 		break;
 
 	//Settings Menu Brewtime
@@ -352,13 +505,12 @@ void updateMenu()
 		}
 
 		//convert saved int to minutes and seconds
-		int currentEditMinutes = alarmEditTime / 60;
-		int currentEditSeconds = alarmEditTime % 60;
+		int currentEditMinutesB = alarmEditTime / 60;
+		int currentEditSecondsB = alarmEditTime % 60;
 		//print time
-		lcd.setCursor(5, 1);
-		lcd.print(currentEditMinutes);
-		lcd.setCursor(8, 1);
-		lcd.print(currentEditSeconds);
+		sprintf(editTimeBufferB, "%02um%02us", currentEditMinutesB, currentEditSecondsB);
+		lcd.setCursor(6, 1);
+		lcd.print(editTimeBufferB);
 		break;
 
 	//Settings Menu Warmtime
@@ -387,13 +539,12 @@ void updateMenu()
 		}
 
 		//convert saved int to minutes and seconds
-		int currentEditHours = alarmEditTime / 60;
-		int currentEditMinutes = alarmEditTime % 60;
+		int currentEditHoursC = alarmEditTime / 60;
+		int currentEditMinutesC = alarmEditTime % 60;
 		//print time
+		sprintf(editTimeBufferC, "%02uh%02um", currentEditHoursC, currentEditMinutesC);
 		lcd.setCursor(6, 1);
-		lcd.print(currentEditHours);
-		lcd.setCursor(8, 1);
-		lcd.print(currentEditMinutes);
+		lcd.print(editTimeBufferC);
 		break;
 
 	//Settings Menu Audible Alarm
@@ -595,10 +746,7 @@ void showResetTime()
 
 	//variables
 	int dateArray[3];
-	int hour;
-	int minute;
-	int second;
-	DateTime newTime;
+	int timeArray[3];
 	int timeResetStage = 0;
 
 	//o _ _ 2 5 / 0 4 / 2 0 2 1 _ _ _
@@ -609,7 +757,7 @@ void showResetTime()
 	lcd.print("Set Date:");
 	lcd.setCursor(0, 1);
 	lcd.write(7);
-	lcd.setCursor(5, 1);
+	lcd.setCursor(3, 1);
 	lcd.print(" /  / ");
 
 	//date reset loop
@@ -621,57 +769,139 @@ void showResetTime()
 		{
 		//turn left
 		case 1:
-			// do something
+			//decrease current dateArray value
+			dateArray[timeResetStage] -= 1;
 			break;
 		//turn right
 		case 2:
-			// do something
+			//increase current dateArray value
+			dateArray[timeResetStage] += 1;
 			break;
 		//button pressed
- 		case 3:
-			// do something
+		case 3:
+			//increase timeResetStage
+			timeResetStage++;
 			break;
 		default:
 			break;
 		}
 	}
 
+	//o _ _ _ 2 4 : 0 0 : 0 0 _ _ _ _
+	//0 1 2 3 4 5 6 7 8 9 A B C D E F
+	//clear lcd and print date input dialogue
+	lcd.clear();
+	lcd.setCursor(0, 0);
+	lcd.print("Set Time:");
+	lcd.setCursor(0, 1);
+	lcd.write(6);
+	lcd.setCursor(4, 1);
+	lcd.print(" :  : ");
+
+	timeResetStage = 0;
+	//date reset loop
+	while (timeResetStage < 3)
+	{
+		int tempDate;
+		//devide what to do according to dial state
+		switch (checkDial())
+		{
+		//turn left
+		case 1:
+			//decrease current dateArray value
+			timeArray[timeResetStage] -= 1;
+			break;
+		//turn right
+		case 2:
+			//increase current dateArray value
+			timeArray[timeResetStage] += 1;
+			break;
+		//button pressed
+		case 3:
+			//increase timeResetStage
+			timeResetStage++;
+			break;
+		default:
+			break;
+		}
+	}
+
+	//Put time into rtc
+	rtc.adjust(DateTime(dateArray[2], dateArray[1], dateArray[0], timeArray[0], timeArray[1], timeArray[2]));
+	//Print Success Note
+	lcd.clear();
+	lcd.setCursor(0, 0);
+	lcd.print("Time/Date reset");
+	lcd.setCursor(0, 1);
+	lcd.print("successfully!");
+
 	//tell main menu to clear display
 	menuState = 0;
 	clearflag = true;
 }
 
+//----------toggleLights()----------
+//toggles leds and backlight (in the main menu)
+void toggleLights(bool turnOn)
+{
+	//checks if the lights are currently on (by checking backligth state)
+	if (turnOn)
+	{
+		//turn lights on
+		//check if leds need to turn on
+		if (isArmed)
+		{
+			digitalWrite(pinRedLed, true);
+		}
+		lcd.backlight();
+
+	}
+	else
+	{
+		//turn lights off
+		digitalWrite(pinRedLed, LOW);
+		lcd.noBacklight();
+	}
+}
+
 //----------checkDial()----------
-//Checks if they dial has been turned or not
+//Checks if they dial has been turned or not by consuming the last store valued
 //0 = no turn, 1 = left turn, 2 = right turn, 3 = button pressed
 int checkDial()
 {
 	int result = 0;
-	int rotaryCurState = digitalRead(pinRotIn1);
-	//has button been pressed
-	if (digitalRead(pinRotBtn))
+
+	//grab current rotaryEncoderState
+	int rotBtnState = digitalRead(pinRotBtn);
+	uint8_t rotaryState = RotaryEncoder.read();
+
+	//is button pressed and not locked?
+	if (!rotBtnState && !rotaryButtonLocked)
 	{
 		//button pressed
 		result = 3;
-	}
-	//has dial turned?
-	else if (rotaryCurState != rotaryLastState)
-	{
-		//has it turned right?
-		if (digitalRead(pinRotIn2) != rotaryCurState)
-		{
-			//turned right
-			result = 2;
-		}
-		else
-		{
-			//turned left
-			result = 1;
-		}
-	}
 
-	//archive rotary state
-	rotaryLastState = rotaryCurState;
+		//lock button
+		rotaryButtonLocked = true;
+	}
+	//is button not pressed and locked?
+	else if (rotBtnState && rotaryButtonLocked)
+	{
+		//unlock button
+		rotaryButtonLocked = false;
+	}
+	//check if the dial was turned left
+	else if (rotaryState == DIR_CCW)
+	{
+		result = 1;
+		rotarySpeed = RotaryEncoder.speed();
+	}
+	//check if the dial was turned right
+	else if (rotaryState == DIR_CW)
+	{
+		result = 2;
+		rotarySpeed = RotaryEncoder.speed();
+	}
 
 	return result;
 }
