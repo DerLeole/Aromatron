@@ -159,6 +159,9 @@ void setup()
 	//Restore Alarms & Co from EEPROM
 	//loadFromEeprom();
 
+	//get current time from rtc
+	now = rtc.now();
+
 	//Remove the delay if you dont wanna see my "bootscreen"
 	delay(500);
 	lcd.clear();
@@ -169,7 +172,11 @@ void setup()
 *************************************************/
 void loop() 
 {
-	
+	//check if time has changed
+	if (checkTime())
+	{
+		
+	}
 }
 
 /*************************************************
@@ -192,4 +199,26 @@ void changeRelais(bool turnOn)
 		digitalWrite(pinRelais, HIGH);
 		digitalWrite(pinGreenLed, LOW);
 	}
+}
+
+//----------checkTime()----------
+//Updates the "now" variable and returns true if the time has changed since last check and false if not.
+bool checkTime()
+{
+	//get current time from RTC
+	DateTime newNow = rtc.now();
+
+	//check if new time is after previous time
+	if (newNow > now)
+	{
+		//save newNow
+		now = newNow;
+
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+	
 }
